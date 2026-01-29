@@ -21,8 +21,8 @@ CREATE TABLE players (
 
 -- ---------- game_versions ----------
 CREATE TABLE game_versions (
-    game_version_id SERIAL PRIMARY KEY,
-    game_version_code TEXT NOT NULL UNIQUE,
+    version_id SERIAL PRIMARY KEY,
+    version_code TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL UNIQUE
 );
 
