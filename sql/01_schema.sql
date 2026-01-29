@@ -22,6 +22,7 @@ CREATE TABLE players (
 -- ---------- game_versions ----------
 CREATE TABLE game_versions (
     game_version_id SERIAL PRIMARY KEY,
+    game_version_code TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL UNIQUE
 );
 
@@ -29,7 +30,7 @@ CREATE TABLE game_versions (
 CREATE TABLE games (
     game_id SERIAL PRIMARY KEY,
     game_no INTEGER NOT NULL UNIQUE,
-    game_verion_id INTEGER NOT NULL 
+    game_verion_id INTEGER NOT NULL, 
     played_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -37,6 +38,7 @@ CREATE TABLE games (
 -- ---------- score_types ---------
 CREATE TABLE score_types (
     score_type_id SERIAL PRIMARY KEY,
+    score_type_code TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL UNIQUE
 );
 
@@ -47,7 +49,7 @@ CREATE TABLE scores (
     score_type_id INTEGER NOT NULL,
     points INTEGER NOT NULL CHECK (points >= 0),
 
-    PRIMARY KEY (game_id, player_id, score_type_id)
+    PRIMARY KEY (game_id, player_id, score_type_id),
 
     CONSTRAINT fk_scores_game
         FOREIGN KEY (game_id)
