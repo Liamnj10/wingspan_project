@@ -29,8 +29,7 @@ CREATE TABLE game_versions (
 -- ---------- games -----------
 CREATE TABLE games (
     game_id SERIAL PRIMARY KEY,
-    game_no INTEGER NOT NULL UNIQUE,
-    game_verion_id INTEGER NOT NULL, 
+    game_version_id INTEGER NOT NULL, 
     played_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
