@@ -7,5 +7,10 @@ Rebuild a Wingspan score-tracking spreadsheet as a proper data system, focusing 
 
 ## Tech
 - PostgreSQL
-- SQL
+- SQL (schema, views)
 - Git / GitHub
+- Python
+- Streamlit
+
+## Status
+In development.
