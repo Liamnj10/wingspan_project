@@ -35,7 +35,10 @@ GROUP BY
     game_id,
     game_version,
     player_id,
-    player_name;
+    player_name
+ORDER BY 
+    game_id,
+    player_id;
 
 
 -- winners list
@@ -51,7 +54,7 @@ FROM(
         player_id,
 		player_name, 
 		total_points,
-		RANK() OVER(PARTITION BY player_name ORDER BY total_points DESC)AS rnk
+		RANK() OVER(PARTITION BY game_id ORDER BY total_points DESC)AS rnk
 	FROM v_game_player_totals
 )
 WHERE rnk=1
@@ -60,24 +63,44 @@ ORDER BY game_id;
 
 
 -- Leaderboard
-
 CREATE OR REPLACE VIEW v_player_leaderboard AS
+
+-- Pre-aggregate the games played and wins 
+WITH games_played AS (
+    SELECT
+        player_id,
+        COUNT(DISTINCT game_id) AS games_played
+    FROM v_game_player_totals
+    GROUP BY player_id
+),
+wins AS (
+    SELECT
+        player_id,
+        COUNT(DISTINCT game_id) AS wins
+    FROM v_winners
+    GROUP BY player_id
+)
+
 SELECT
     t.player_id,
     t.player_name,
-    COUNT(*) AS games_played,
-	COUNT(w.player_id) AS wins,
+    gp.games_played,
+	COALESCE(w.wins,0) AS wins,
     ROUND(AVG(t.total_points), 2) AS avg_score,
     MAX(t.total_points) AS best_score,
     MIN(t.total_points) AS worst_score
 FROM v_game_player_totals t
-JOIN v_winners w
-	ON t.player_id = w.player_id
+JOIN games_played gp
+	ON t.player_id = gp.player_id
+LEFT JOIN wins w
+    ON t.player_id = w.player_id
 GROUP BY
     t.player_id,
-    t.player_name
+    t.player_name,
+    gp.games_played,
+    w.wins	
 ORDER BY
-	wins,
-	avg_score;
+	wins DESC,
+	avg_score DESC;
 
 
