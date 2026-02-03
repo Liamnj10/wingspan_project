@@ -64,3 +64,7 @@ CREATE TABLE scores (
         FOREIGN KEY (score_type_id)
         REFERENCES score_types (score_type_id)
 );
+
+
+ALTER TABLE players
+ADD CONSTRAINT uq_players_name UNIQUE (name);

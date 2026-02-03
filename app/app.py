@@ -1,37 +1,9 @@
 import streamlit as st
-import psycopg2
 import pandas as pd
-import os 
 from dotenv import load_dotenv
+import db
 
 load_dotenv()
-
-def get_connection():
-    return psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-    )
-
-def get_players():
-    conn = get_connection()
-    df = pd.read_sql(
-        "SELECT player_id, name FROM players ORDER BY name;",
-        conn
-    )
-    conn.close()
-    return df
-
-def get_score_types():
-    conn = get_connection()
-    df = pd.read_sql(
-        "SELECT score_type_id, score_type_code FROM score_types ORDER BY score_type_ID;",
-        conn
-    )
-    conn.close()
-    return df
 
 st.title("Wingspan Scoring App")
 
@@ -42,16 +14,31 @@ SELECT *
 FROM v_player_leaderboard;
 """
 
-conn = get_connection()
+conn = db.get_connection()
 df = pd.read_sql(query, conn)
 conn.close()
 
 st.dataframe(df)
 
+st.subheader("Add New Player")
+
+with st.form("add_player_form"):
+    new_player_name = st.text_input("Player name")
+    add_player_submit = st.form_submit_button("Add Player")
+
+if add_player_submit:
+    if new_player_name.strip() == "":
+        st.warning("Player name can not be empty.")
+        
+    else:
+        db.add_player(new_player_name.strip())
+        st.success(f"Player '{new_player_name}' added.")
+
+
 st.subheader("Play New Game")
 
-players_df = get_players()
-score_types_df = get_score_types()
+players_df = db.get_players()
+score_types_df = db.get_score_types()
 
 with st.form("game_with_scores_form"):
     played_at = st.date_input("Game Date")
@@ -83,12 +70,23 @@ with st.form("game_with_scores_form"):
     confirm = st.checkbox("I confirm all scores are final")
     submitted = st.form_submit_button("Save game")
 
+#extra checkbox to prevent accidental submissions
 if submitted and not confirm:
     st.warning("Please confirm all scores before saving.")
     st.stop()
 
+# Wingspan is fo 2 to 5 players this checks the count of players is in bounds
+if submitted and len(selected_players) < 2:
+    st.warning("A game must have at least 2 players.")
+    st.stop()
+
+if submitted and len(selected_players) > 5:
+    st.warning("A game can have at most 5 players.")
+    st.stop()
+
+
 if submitted:
-    conn = get_connection()
+    conn = db.get_connection()
     cur = conn.cursor()
 
     try:
