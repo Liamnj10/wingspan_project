@@ -35,7 +35,10 @@ winner = (
 
 # Highlight winner column
 styled_table = final_table.style.apply(
-    lambda col: ["background-color: #d4edda" if col.name == winner else "" for _ in col],
+    lambda col: ["background-color: #d4edda" 
+                 if col.name == winner else "" 
+                 for _ in col
+    ],
     axis=0
 )
 
