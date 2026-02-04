@@ -3,6 +3,7 @@ import psycopg2
 import pandas as pd
 import os 
 
+#Connect to db
 def get_connection():
     return psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
@@ -12,6 +13,7 @@ def get_connection():
         port=os.getenv("DB_PORT"),
     )
 
+#retrieve players from the db
 def get_players():
     conn = get_connection()
     df = pd.read_sql(
@@ -21,6 +23,7 @@ def get_players():
     conn.close()
     return df
 
+#retrieve score types from the db
 def get_score_types():
     conn = get_connection()
     df = pd.read_sql(
@@ -30,6 +33,7 @@ def get_score_types():
     conn.close()
     return df
 
+#Insert a player into the db from app view
 def add_player(player_name):
         conn = get_connection()
         cur = conn.cursor()
@@ -47,3 +51,65 @@ def add_player(player_name):
         finally:
             cur.close()
             conn.close()
+
+
+def build_game_scorecard(df):
+
+# Builds a pivoted scorecard for a single game.
+
+# Rows:
+#     - Rank
+#     - Score types (ordered)
+#     - Total
+
+# Columns:
+#     - Player names
+
+# Enforced score order (consider adding score_type_id into the Viewto order by or add new types in case of expansions)
+    score_order = [
+        "Birds",
+        "Bonus Cards",
+        "End of Round Goals",
+        "Eggs",
+        "Food on Cards",
+        "Tucked Cards",
+        "Nectar",
+    ]
+#pivot score breakdown
+    score_df = df.pivot(
+        index="score_type",
+        columns="player_name",
+        values="points"
+    )
+
+# Keep only known score types, in correct order
+    score_df = score_df.loc[
+        score_df.index.intersection(score_order)
+    ]
+
+#Rank row
+    rank_row = (
+        df[["player_name","rank"]]
+        .drop_duplicates()
+        .set_index("player_name")
+        .T
+    )
+
+    rank_row.index = ["Rank"]
+
+#Totals row
+    totals_row = (
+        df[["player_name","total_points"]]
+        .drop_duplicates()
+        .set_index("player_name")
+        .T
+    )
+
+    totals_row.index = ["Total"]
+
+    final_table = pd.concat(
+        [rank_row, score_df, totals_row]
+    )
+
+    return final_table
+    

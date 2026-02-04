@@ -103,4 +103,34 @@ ORDER BY
 	wins DESC,
 	avg_score DESC;
 
+CREATE OR REPLACE VIEW v_game_player_score_table AS
+SELECT
+    game_id,
+    game_version_id,
+    game_version,
+    player_id,
+    player_name,
+    points
+FROM v_game_player_score_breakdown
 
+-- Ranked score breakdowns for more detailed game views in streamlit
+
+CREATE OR REPLACE VIEW v_game_player_score_ranked AS
+SELECT
+    b.game_id,
+    b.game_version_id,
+    b.game_version,
+    b.player_id,
+    b.player_name,
+    b.score_type_code,
+    b.score_type,
+    b.points,
+    t.total_points,
+    RANK() OVER(
+        PARTITION BY b.game_id
+        ORDER BY t.total_points DESC
+    ) AS rank
+FROM v_game_player_score_breakdown b
+JOIN v_game_player_totals t 
+    ON b.game_id = t.game_id
+    AND b.player_id = t.player_id;
