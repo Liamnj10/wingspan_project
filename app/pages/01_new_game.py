@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import db
 
-st.subheader("Add New Player")
+st.header("Add New Player")
 
 with st.form("add_player_form"):
     new_player_name = st.text_input("Player name")

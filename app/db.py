@@ -126,3 +126,47 @@ def build_game_summary(df):
     }
 
     return pd.DataFrame([summary])
+
+
+#retrieve games from the db
+def get_games():
+     conn = get_connection()
+     df = pd.read_sql("""
+        SELECT
+            g.game_id,
+            g.played_at,
+            gv.name AS game_version
+        FROM games g
+        JOIN game_versions gv 
+            ON g.game_version_id = gv.version_id
+        ORDER BY g.played_at DESC, g.game_id DESC;
+    """, conn)
+     conn.close()
+     return df
+
+#delete game, can be used in case of error in data entry
+def delete_game(game_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "DELETE FROM games WHERE game_id = %s;",
+        (game_id,)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# retrieve game breakdown for set game_id
+def get_game_breakdown(game_id):
+    conn = get_connection()
+    query = """
+        SELECT *
+        FROM v_game_player_score_ranked
+        WHERE game_id = %s
+        ORDER BY rank, player_name, score_type;
+    """
+
+    df = pd.read_sql(query, conn, params=(game_id,))
+    conn.close()
+
+    return df
