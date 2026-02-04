@@ -113,3 +113,16 @@ def build_game_scorecard(df):
 
     return final_table
     
+
+def build_game_summary(df):
+
+    #Builds a one-row summary table for a game.
+    
+    summary = {
+        "Game ID": df["game_id"].iloc[0],
+        "Game Version": df["game_version"].iloc[0],
+        #"Played At": df["played_at"].iloc[0],
+        #above isn't pulled through in the underlying view review
+    }
+
+    return pd.DataFrame([summary])
