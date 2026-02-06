@@ -28,21 +28,21 @@ game_summary = db.build_game_summary(df)
 final_table = db.build_game_scorecard(df)
 
 # Identify winner (rank = 1)
-winner = (
-    df[df["rank"] == 1]["player_name"]
-    .iloc[0]
-)
+# winner = (
+#     df[df["rank"] == 1]["player_name"]
+#     .iloc[0]
+# )
 
 # Highlight winner column
-styled_table = final_table.style.apply(
-    lambda col: ["background-color: #d4edda" 
-                 if col.name == winner else "" 
-                 for _ in col
-    ],
-    axis=0
-)
+#styled_table = final_table.style.apply(
+#    lambda col: ["background-color: #d4edda" 
+#                 if col.name == winner else "" 
+#                 for _ in col
+    # # ],
+    # axis=0
+# )
 
-st.dataframe(styled_table)
+st.dataframe(final_table)
 
 confirm_delete = st.checkbox(
     f"I understand this will permanently delete Game {selected_game_id}"

@@ -20,3 +20,17 @@ conn.close()
 
 st.dataframe(df)
 
+st.subheader("Top Scores")
+
+query = """
+SELECT *
+FROM v_game_player_score_ranked
+WHERE all_time <= 10"""
+
+conn = db.get_connection()
+df = pd.read_sql(query, conn)
+conn.close()
+
+leaderboard = db.build_leaderboard_scorecard(df)
+
+st.dataframe(leaderboard)

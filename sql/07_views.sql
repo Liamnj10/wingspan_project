@@ -116,6 +116,20 @@ FROM v_game_player_score_breakdown
 -- Ranked score breakdowns for more detailed game views in streamlit
 
 CREATE OR REPLACE VIEW v_game_player_score_ranked AS
+WITH ranked_players AS (
+    SELECT
+        game_id,
+        player_id,
+        total_points,
+        RANK() OVER (
+            PARTITION BY game_id
+            ORDER BY total_points DESC
+        ) AS rank,
+        RANK() OVER (
+            ORDER BY total_points DESC
+        ) AS all_time
+    FROM v_game_player_totals
+)
 SELECT
     b.game_id,
     b.game_version_id,
@@ -125,12 +139,10 @@ SELECT
     b.score_type_code,
     b.score_type,
     b.points,
-    t.total_points,
-    RANK() OVER(
-        PARTITION BY b.game_id
-        ORDER BY t.total_points DESC
-    ) AS rank
+    rp.total_points,
+    rp.rank,
+    rp.all_time
 FROM v_game_player_score_breakdown b
-JOIN v_game_player_totals t 
-    ON b.game_id = t.game_id
-    AND b.player_id = t.player_id;
+JOIN ranked_players rp
+    ON b.game_id = rp.game_id
+   AND b.player_id = rp.player_id;

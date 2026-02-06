@@ -170,3 +170,72 @@ def get_game_breakdown(game_id):
     conn.close()
 
     return df
+
+def build_leaderboard_scorecard(df):
+
+# Builds a pivoted scorecard for a single game.
+
+# Rows:
+#     - all_time rank
+#     - game_version
+#     - Score types (ordered)
+#     - Total
+
+# Columns:
+#     - Player names
+
+# Enforced score order (consider adding score_type_id into the Viewto order by or add new types in case of expansions)
+    score_order = [
+        "Birds",
+        "Bonus Cards",
+        "End of Round Goals",
+        "Eggs",
+        "Food on Cards",
+        "Tucked Cards",
+        "Nectar",
+    ]
+#pivot score breakdown
+    score_df = df.pivot(
+        index="score_type",
+        columns="all_time",
+        values="points"
+    )
+
+# Keep only known score types, in correct order
+    score_df = score_df.loc[
+        score_df.index.intersection(score_order)
+    ]
+
+#Rank row
+    player_row = (
+        df[["all_time","player_name"]]
+        .drop_duplicates()
+        .set_index("all_time")
+    )
+
+    player_row.index = ["Player"]
+
+#Rank row
+    version_row = (
+        df[["all_time","version_played"]]
+        .drop_duplicates()
+        .set_index("all_time")
+    )
+
+    player_row.index = ["Version"]
+
+#Totals row
+    totals_row = (
+        df[["all_time","total_points"]]
+        .drop_duplicates()
+        .set_index("all_time")
+        .T
+    )
+
+    totals_row.index = ["Total"]
+
+    final_table = pd.concat(
+        [player_row, version_row, score_df, totals_row]
+    )
+
+    return final_table
